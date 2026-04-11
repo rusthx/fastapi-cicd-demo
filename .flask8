@@ -1,0 +1,20 @@
+[flake8]
+max-line-length = 120
+extend-ignore =
+    # 忽略 E501 由 black 处理行长度（如果以后引入 black）
+    E501
+    # 忽略 W503 行在二元运算符前换行
+    W503
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+    .github,
+    .vscode,
+per-file-ignores =
+    # __init__.py 可以没有内容
+    */__init__.py: F401

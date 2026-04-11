@@ -1,0 +1,26 @@
+[project]
+name = "fastapi-cicd-demo"
+version = "0.1.0"
+description = "一个用于演示 CI/CD 流水线的 FastAPI 项目"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html:coverage_html",
+    "--cov-report=xml:coverage.xml",
+    "--junitxml=test-results.xml",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

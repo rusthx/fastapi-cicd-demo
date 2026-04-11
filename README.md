@@ -1,5 +1,5 @@
 # fastapi-cicd-demo
-Python项目CI/CD流水线练习
+一个用于演示 CI/CD 流水线的 FastAPI 项目
 
 项目结构
 ```
@@ -30,3 +30,4 @@ fastapi-cicd-demo/
 └── README.md
 
 ```
+
