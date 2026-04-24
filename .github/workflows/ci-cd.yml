@@ -60,8 +60,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      # 学习点 1：在一个 Step 里安装多个依赖
-      #    把多个 pip install 命令放在同一个 run 块里
+      # 把多个 pip install 命令放在同一个 run 块里
       - name: 安装依赖
         run: |
           python -m pip install --upgrade pip
@@ -109,8 +108,8 @@ jobs:
           echo "========================================="
           pytest
 
-      #  学习点 2：上传 pytest 测试报告
-      #    使用 actions/upload-artifact 保留生成的报告文件
+
+      #    使用 actions/upload-artifact 保留生成的pytest 测试报告文件
       - name:  上传测试结果 (JUnit XML)
         if: always()                    # 即使测试失败也要上传
         uses: actions/upload-artifact@v7
@@ -145,7 +144,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      #  学习点 3：自动根据 Git Tag / SHA 生成 Docker 镜像标签
+      #  自动根据 Git Tag / SHA 生成 Docker 镜像标签
       - name:  生成镜像标签元数据
         id: meta
         uses: docker/metadata-action@v6
