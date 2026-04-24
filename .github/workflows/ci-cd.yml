@@ -239,10 +239,9 @@ jobs:
             docker pull "$IMAGE"
 
             # 3. 检查旧容器是否存在（用于回退）
-            #    注意：不使用 docker inspect --format='{{.Config.Image}}'
-            #    因为 ssh-action 内部用 Go text/template 处理脚本，
-            #    {{ }} 会被当作 Go 模板语法而丢失
-            if docker ps -a -q -f name=^fastapi-cicd-demo$ | grep -q .; then
+            #    使用 docker inspect 精确匹配容器名，
+            #    避免正则特殊字符（^$）被 shell 解释的问题
+            if docker inspect fastapi-cicd-demo > /dev/null 2>&1; then
               echo "发现旧容器"
               OLD_CONTAINER_EXISTS=true
             else
