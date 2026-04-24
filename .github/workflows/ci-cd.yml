@@ -305,4 +305,4 @@ jobs:
           echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| 服务器 | \`${{ vars.DEPLOY_HOST }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo " [查看服务](http://${{vars.DEPLOY_HOST }}:8000/docs)" >> $GITHUB_STEP_SUMMARY
+          echo "[查看服务](http://${{vars.DEPLOY_HOST }}:8000/docs)" >> $GITHUB_STEP_SUMMARY
