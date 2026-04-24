@@ -3,7 +3,7 @@
 # ============================================================
 # 触发条件：
 #   1. push 到 main 分支（执行 Lint + Test + Build + Deploy）
-#   2. push tag（如 v1.0.0，执行 Build + Deploy，使用 tag 作为版本号）
+#   2. push tag（如 v1.0.0，执行 Lint + Test + Build + Deploy，使用 tag 作为版本号）
 #   3. Pull Request（仅执行 Lint + Test）
 # ============================================================
 
@@ -224,6 +224,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: 22
           script_stop: true
+          command_timeout: 10m
           script: |
             echo "========================================="
             echo "  开始部署 fastapi-cicd-demo"
@@ -237,12 +238,16 @@ jobs:
             IMAGE="${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
             docker pull "$IMAGE"
 
-            # 3. 记录旧容器镜像（用于回退）
-            OLD_IMAGE=$(docker inspect --format='{{.Config.Image}}' fastapi-cicd-demo 2>/dev/null || echo "")
-            if [ -n "$OLD_IMAGE" ]; then
-              echo "当前运行镜像: $OLD_IMAGE"
+            # 3. 检查旧容器是否存在（用于回退）
+            #    注意：不使用 docker inspect --format='{{.Config.Image}}'
+            #    因为 ssh-action 内部用 Go text/template 处理脚本，
+            #    {{ }} 会被当作 Go 模板语法而丢失
+            if docker ps -a -q -f name=fastapi-cicd-demo | grep -q .; then
+              echo "发现旧容器"
+              OLD_CONTAINER_EXISTS=true
             else
               echo "未发现旧容器，首次部署"
+              OLD_CONTAINER_EXISTS=false
             fi
 
             # 4. 停止旧容器（保留，不删除，用于回退）
@@ -281,8 +286,8 @@ jobs:
               docker rm fastapi-cicd-demo-new 2>/dev/null || true
 
               # 回退：重新启动旧容器
-              if [ -n "$OLD_IMAGE" ]; then
-                echo " 正在回退到旧版本 $OLD_IMAGE ..."
+              if [ "$OLD_CONTAINER_EXISTS" = true ]; then
+                echo " 正在回退到旧版本..."
                 docker start fastapi-cicd-demo
 
                 sleep 3
