@@ -131,7 +131,7 @@ jobs:
     if: github.event_name == 'push'
 
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+      image_tag: ${{ steps.single-tag.outputs.tag }}
 
     steps:
       - name: Checkout 代码
@@ -158,6 +158,15 @@ jobs:
             type=sha,prefix=
             # 始终添加 latest 标签（仅 main 分支）
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: 提取第一个镜像标签
+        id: single-tag
+        run: |
+          ALL_TAGS="${{ steps.meta.outputs.tags }}"
+          # 提取第一个非空标签行
+          FIRST_TAG=$(echo "$ALL_TAGS" | head -n 1 | xargs)
+          echo "提取的部署标签: $FIRST_TAG"
+          echo "tag=$FIRST_TAG" >> "$GITHUB_OUTPUT"
 
       - name:  设置 Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -200,9 +209,14 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ vars.DEPLOY_HOST }}
-          username: deployer                        # 使用我们刚创建的普通用户
-          key: ${{ secrets.DEPLOY_SSH_KEY_DEPLOYER }}  # 该用户对应的私钥
+          username: deployer                        
+          key: ${{ secrets.DEPLOY_SSH_KEY_DEPLOYER }}  
           script: |
+            if [ -z "${{ needs.build.outputs.image_tag }}" ]; then
+              echo "错误：未获取到有效的镜像标签！"
+              exit 1
+            fi
+            echo "即将部署镜像: ${{ needs.build.outputs.image_tag }}"
             sudo /usr/local/bin/deploy-fastapi-app.sh ${{ needs.build.outputs.image_tag }}
 
       - name:  部署摘要
