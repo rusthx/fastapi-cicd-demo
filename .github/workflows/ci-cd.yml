@@ -189,113 +189,21 @@ jobs:
   # Job 4: Deploy（部署到服务器）
   # ──────────────────────────────────────
   deploy:
-    name:  Deploy
+    name: Deploy to Aliyun ECS
     runs-on: ubuntu-22.04
     needs: build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-
-    environment:
-      name: production                   # 需要在 GitHub Settings → Environments 中配置
-      url: http://${{ vars.DEPLOY_HOST }}:8000
+    if: github.event_name == 'push'
+    environment: production
 
     steps:
-      - name:  Checkout 代码
-        uses: actions/checkout@v6
-
-      - name:  确定部署版本标签
-        id: version
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            # 从 tag 提取版本号：refs/tags/v1.0.0 → v1.0.0
-            VERSION="${GITHUB_REF#refs/tags/}"
-          else
-            # main 分支使用 latest
-            VERSION="latest"
-          fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo " 部署版本: $VERSION"
-
-      # 通过 SSH 连接远程服务器执行部署（含自动回退）
-      - name:  SSH 部署到服务器
-        uses: appleboy/ssh-action@v1.0.3
+      - name: 通过专用脚本安全部署
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ vars.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: 22
-          command_timeout: 10m
+          username: deployer                        # 使用我们刚创建的普通用户
+          key: ${{ secrets.DEPLOY_SSH_KEY_DEPLOYER }}  # 该用户对应的私钥
           script: |
-            echo "========================================="
-            echo "  开始部署 fastapi-cicd-demo"
-            echo "  版本: ${{ steps.version.outputs.version }}"
-            echo "========================================="
-
-            # 1. 登录 GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin || { echo "docker login 失败"; exit 1; }
-
-            # 2. 拉取新镜像
-            IMAGE="${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-            docker pull "$IMAGE" || { echo "docker pull 失败"; exit 1; }
-            echo "镜像拉取成功: $IMAGE"
-
-            # 3. 检查旧容器是否存在（用于回退）
-            OLD_CONTAINER_EXISTS=false
-            if docker inspect fastapi-cicd-demo > /dev/null 2>&1; then
-              OLD_CONTAINER_EXISTS=true
-              echo "发现旧容器"
-            else
-              echo "未发现旧容器，首次部署"
-            fi
-
-            # 4. 停止旧容器（保留，不删除，用于回退）
-            docker stop fastapi-cicd-demo 2>/dev/null || true
-            echo "旧容器已停止"
-
-            # 5. 启动新容器（临时名称）
-            docker run -d \
-              --name fastapi-cicd-demo-new \
-              --restart unless-stopped \
-              -p 8000:8000 \
-              -e ENVIRONMENT=production \
-              "$IMAGE" || { echo "docker run 失败"; exit 1; }
-            echo "新容器已启动"
-
-            # 6. 等待新容器启动并做健康检查
-            echo "等待新服务启动..."
-            sleep 5
-
-            HEALTH=$(curl -sf http://localhost:8000/health || echo "FAILED")
-            echo "健康检查结果: $HEALTH"
-
-            if echo "$HEALTH" | grep -q "healthy"; then
-              #  部署成功：清理旧容器，重命名新容器 
-              echo " 新容器健康检查通过！"
-              docker rm fastapi-cicd-demo 2>/dev/null || true
-              docker rename fastapi-cicd-demo-new fastapi-cicd-demo
-              docker image prune -f
-              echo "部署成功！"
-            else
-              # ── 部署失败：回退到旧版本 ──
-              echo "新容器健康检查失败！"
-              docker logs fastapi-cicd-demo-new 2>/dev/null || true
-
-              # 删除失败的新容器
-              docker stop fastapi-cicd-demo-new 2>/dev/null || true
-              docker rm fastapi-cicd-demo-new 2>/dev/null || true
-
-              # 回退：重新启动旧容器
-              if [ "$OLD_CONTAINER_EXISTS" = true ]; then
-                echo " 正在回退到旧版本..."
-                docker start fastapi-cicd-demo
-
-                sleep 3
-                ROLLBACK_HEALTH=$(curl -sf http://localhost:8000/health || echo "FAILED")
-                echo "回退后健康检查: $ROLLBACK_HEALTH"
-                echo "已回退到旧版本"
-              fi
-
-              exit 1
-            fi
+            sudo /usr/local/bin/deploy-fastapi-app.sh ${{ needs.build.outputs.image_tag }}
 
       - name:  部署摘要
         run: |
