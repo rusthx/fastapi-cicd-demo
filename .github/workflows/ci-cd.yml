@@ -2,9 +2,8 @@
 # FastAPI CI/CD 流水线
 # ============================================================
 # 触发条件：
-#   1. push 到 main 分支（执行 Lint + Test + Build + Deploy）
-#   2. push tag（如 v1.0.0，执行 Lint + Test + Build + Deploy，使用 tag 作为版本号）
-#   3. Pull Request（仅执行 Lint + Test）
+#   1. push tag（如 v1.0.0，执行 Lint + Test + Build + Deploy，使用 tag 作为版本号）
+#   2. Pull Request（仅执行 Lint + Test）
 # ============================================================
 
 name: CI/CD Pipeline
