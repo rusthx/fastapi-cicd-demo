@@ -1,0 +1,25 @@
+# pre-commit 钩子配置
+# 文档：https://pre-commit.com/
+
+repos:
+  # ─── 通用格式检查 ───
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace        # 删除行尾空白
+      - id: end-of-file-fixer          # 确保文件末尾有换行
+      - id: check-yaml                 # YAML 语法检查
+      - id: check-added-large-files    # 防止提交大文件
+        args: ['--maxkb=500']
+      - id: check-merge-conflict       # 检查合并冲突标记
+
+  # ─── ruff 代码规范检查 + 自动格式化 ───
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff                  # 代码规范检查 + 自动修复
+        args: [--fix]
+      - id: ruff-format           # 自动格式化
+
+  # ─── 排除不检查的文件 ───
+exclude: '^( migrations/|\.github/ )'

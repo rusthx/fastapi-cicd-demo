@@ -67,12 +67,15 @@ class TestCalculatorDivide:
 class TestCalculatorTypeValidation:
     """类型验证测试。"""
 
-    @pytest.mark.parametrize("a, b", [
-        ("hello", 1),
-        (1, "world"),
-        (None, 1),
-        (1, [1, 2]),
-    ])
+    @pytest.mark.parametrize(
+        "a, b",
+        [
+            ("hello", 1),
+            (1, "world"),
+            (None, 1),
+            (1, [1, 2]),
+        ],
+    )
     def test_invalid_types_raise_type_error(self, a, b):
         """测试非数字类型抛出 TypeError。"""
         with pytest.raises(TypeError, match="两个参数都必须是数字类型"):

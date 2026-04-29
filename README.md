@@ -30,4 +30,3 @@ fastapi-cicd-demo/
 └── README.md
 
 ```
-

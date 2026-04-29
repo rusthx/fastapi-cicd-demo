@@ -5,5 +5,7 @@
             "envManager": "ms-python.python:conda",
             "packageManager": "ms-python.python:conda"
         }
-    ]
+    ],
+    // 关闭JSON Schema的自动下载
+    "json.schemaDownload.enable":false
 }

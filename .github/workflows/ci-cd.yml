@@ -57,22 +57,17 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      # 把多个 pip install 命令放在同一个 run 块里
       - name: 安装依赖
         run: |
           python -m pip install --upgrade pip
-          pip install flake8
+          pip install ruff
           pip install -r requirements.txt
 
-      - name: 运行 flake8 检查
+      - name: 运行 ruff 检查
         run: |
-          echo "========================================="
-          echo "  Flake8 代码规范检查"
-          echo "========================================="
-          flake8 app/ tests/ \
-            --statistics \
-            --count \
-            --show-source
+          echo "  Ruff 代码规范检查 + 格式化检查"
+          ruff check app/ tests/
+          ruff format --check app/ tests/
           echo "代码规范检查通过！"
 
   # ──────────────────────────────────────
@@ -206,8 +201,8 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ vars.DEPLOY_HOST }}
-          username: deployer                        
-          key: ${{ secrets.DEPLOY_SSH_KEY_DEPLOYER }}  
+          username: deployer
+          key: ${{ secrets.DEPLOY_SSH_KEY_DEPLOYER }}
           script: |
             if [ -z "${{ needs.build.outputs.image_tag }}" ]; then
               echo "错误：未获取到有效的镜像标签！"
