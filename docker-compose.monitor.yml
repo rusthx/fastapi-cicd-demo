@@ -12,7 +12,7 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
     networks:
-      - monitoring
+      - monitor
     restart: unless-stopped
 
   grafana:
@@ -26,10 +26,10 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     networks:
-      - monitoring
+      - monitor
     restart: unless-stopped
 
 networks:
-  monitoring:
-    name: monitoring
+  monitor:
+    name: monitor
     driver: bridge
