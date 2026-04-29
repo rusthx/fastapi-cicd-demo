@@ -8,3 +8,4 @@ httpx==0.27.2
 
 # 代码规范
 ruff==0.11.5
+prometheus-fastapi-instrumentator==7.1.0

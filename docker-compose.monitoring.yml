@@ -1,12 +1,4 @@
 services:
-  web:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - ENVIRONMENT=development
-    restart: unless-stopped
-
   prometheus:
     image: prom/prometheus:v2.55.1
     ports:
@@ -19,6 +11,8 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
+    networks:
+      - monitoring
     restart: unless-stopped
 
   grafana:
@@ -31,4 +25,11 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - monitoring
     restart: unless-stopped
+
+networks:
+  monitoring:
+    name: monitoring
+    driver: bridge

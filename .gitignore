@@ -1,1 +1,9 @@
-.vscode
+# Python
+__pycache__/
+.ruff_cache/
+
+# IDE
+.vscode/
+
+# 测试
+.pytest_cache/

@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.prometheus_metrics import setup_metrics
 from app.routers import health
 
 app = FastAPI(
@@ -10,6 +11,9 @@ app = FastAPI(
     description="一个用于演示 CI/CD 流水线的 FastAPI 项目",
     version="0.1.0",
 )
+
+# Prometheus 指标（必须在其他中间件之前注册）
+setup_metrics(app)
 
 # CORS 中间件
 app.add_middleware(
