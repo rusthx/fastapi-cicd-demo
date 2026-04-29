@@ -35,7 +35,7 @@ fi
 
 IMAGE_TAG="$1"
 # 只拒绝包含常见 Shell 注入字符的字符串，其余镜像标签放行
-if echo "$IMAGE_TAG" | grep -q '[;&$`|*?(){}!<>\\'\'"]' ; then
+if echo "$IMAGE_TAG" | grep -q "[;&\$\`|*?(){}!<>\\'\"]" ; then
     log "错误: 镜像 TAG 包含危险字符，禁止执行"
     exit 1
 fi
@@ -78,7 +78,7 @@ fi
 
 #  最后确认，8000端口当前没有被占用（双重保险）
 if ss -tuln | grep -q ':8000'; then
-    log "警告: 8000端口仍被占用，尝试清理..."
+    log "警告: 8000端口仍被占用,尝试清理..."
     # 查找并强制移除占用8000端口的其他容器（非我们的目标容器）
     PORT_CONTAINER_ID=$($DOCKER ps -q --filter "publish=8000")
     if [ -n "$PORT_CONTAINER_ID" ]; then
@@ -100,7 +100,7 @@ $DOCKER run -d \
     "$IMAGE_TAG"
 
 # 健康检查
-log "等待健康检查通过 (最多 ${HEALTH_RETRIES} 次)..."
+log "等待健康检查通过，最多 ${HEALTH_RETRIES} 次..."
 SUCCESS=false
 for i in $(seq 1 $HEALTH_RETRIES); do
     if $CURL -sSf "$HEALTH_URL" > /dev/null 2>&1; then
